@@ -14,7 +14,7 @@ import { input } from "./input.js";
  * //      "mul(8,5)",
  * // ]
  */
-export function extractInstructions(input) {
+export function tokenize(input) {
   const matches = input.matchAll(/(mul\(\d+,\d+\)|don't\(\)|do\(\))/g);
   return [...matches].map(([instruction]) => instruction);
 }
@@ -27,7 +27,7 @@ export function runMultiplyInstruction(instruction) {
 }
 
 function run(input) {
-  const instructions = extractInstructions(input);
+  const instructions = tokenize(input);
 
   let processing = true;
   const result = instructions.reduce((acc, curr) => {
