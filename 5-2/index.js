@@ -1,109 +1,79 @@
 import { rules, pages } from "./input.js";
 
+// Used Claude to generate documentation because the solution was (imo) complex.
+
 /**
- * Map of numbers (key) and the numbers they MUST come after.
+ * Creates a map of dependencies where each key is a page number,
+ * and its value is an array of page numbers that must appear BEFORE it.
+ * Example: { 53: [47] } means "47 must appear before 53"
  */
-function createNotAllowedBeforeMap(rules) {
-  const notAllowedBeforeMap = rules.reduce((acc, curr) => {
-    const [page1, page2] = curr;
-
-    if (acc[page2]) {
-      acc[page2].push(page1);
-    } else {
-      acc[page2] = [page1];
-    }
-
-    return acc;
-  }, {});
-
-  return notAllowedBeforeMap;
+function createDependencyMap(rules) {
+  return rules.reduce(
+    (map, [before, after]) => ({
+      ...map,
+      [after]: [...(map[after] || []), before],
+    }),
+    {}
+  );
 }
 
-function checkPageInSequence(sequence, page, notAllowedBeforeMap) {
-  if (typeof notAllowedBeforeMap[page] === "undefined") {
-    return { valid: true, invalidIndexes: [] };
+/**
+ * Checks if a page violates any dependency rules by looking at following pages.
+ * Returns index of first page that should be before current page, or -1 if valid.
+ * Example: If 53 requires 47 to be before it, and we see [53, 47], returns index of 47
+ */
+function findFirstViolation(sequence, currentIdx, dependencyMap) {
+  const currentPage = sequence[currentIdx];
+  const dependencies = dependencyMap[currentPage];
+
+  if (!dependencies) {
+    return -1;
   }
 
-  const pageIdx = sequence.indexOf(page);
-
-  const invalidIndexes = sequence
-    // Only check pages after the current one.
-    .slice(pageIdx + 1)
-    .map((followingPage, idx) =>
-      notAllowedBeforeMap[page].some(
-        (notAllowedPage) => followingPage === notAllowedPage
-      )
-        ? // Restore to index of full sequence, not just the currently examined slice.
-          pageIdx + idx + 1
-        : -1
-    )
-    .filter((pageIndex) => pageIndex !== -1)
-    .sort();
-
-  console.log({ invalidIndexes });
-
-  return { valid: invalidIndexes.length === 0, invalidIndexes };
+  return sequence.findIndex(
+    (page, idx) => idx > currentIdx && dependencies.includes(page)
+  );
 }
 
-function checkSequence(sequence, notAllowedBeforeMap) {
-  let reordered = false;
-  let workingSequence = [...sequence];
+/**
+ * Sorts sequence using insertion-sort approach where:
+ * 1. For each position, check if any later pages violate dependency rules.
+ * 2. If violation found, move violating page before current position.
+ * 3. Repeat until current position has no violations
+ * Returns new sorted sequence
+ */
+function sortSequence(sequence, dependencyMap) {
+  const result = [...sequence];
 
-  for (let i = 0; i < workingSequence.length; i++) {
-    let valid = false;
-
-    do {
-      const result = checkPageInSequence(
-        workingSequence,
-        workingSequence[i],
-        notAllowedBeforeMap
-      );
-
-      if (result.invalidIndexes.length) {
-        const newSequence = moveElement(
-          workingSequence,
-          // Move the last invalid
-          result.invalidIndexes[result.invalidIndexes.length - 1],
-          i
-        );
-
-        workingSequence = newSequence;
-        reordered = true;
-      } else {
-        valid = true;
-      }
-    } while (!valid);
+  for (let i = 0; i < result.length; i++) {
+    let violationIdx;
+    while (
+      (violationIdx = findFirstViolation(result, i, dependencyMap)) !== -1
+    ) {
+      const [removed] = result.splice(violationIdx, 1);
+      result.splice(i, 0, removed);
+    }
   }
 
-  return { sequence: workingSequence, reordered };
+  return result;
 }
 
-function run({ rules, pageSequence }) {
-  const notAllowedBeforeMap = createNotAllowedBeforeMap(rules);
+function run(rules, sequences) {
+  const dependencyMap = createDependencyMap(rules);
 
-  const result = pageSequence.reduce((acc, curr) => {
-    const { sequence, reordered } = checkSequence(curr, notAllowedBeforeMap);
-
-    if (reordered) {
-      const middlePage = sequence[Math.floor(sequence.length / 2)];
-      return acc + middlePage;
+  const result = sequences.reduce((sum, sequence) => {
+    const sorted = sortSequence(sequence, dependencyMap);
+    // Compare arrays to check if reordering occurred.
+    const wasReordered = !sequence.every((num, idx) => num === sorted[idx]);
+    if (wasReordered) {
+      return sum + sorted[Math.floor(sorted.length / 2)];
     }
-
-    return acc;
+    return sum;
   }, 0);
 
   console.log(result);
 }
 
-export function moveElement(arr, fromIndex, toIndex) {
-  return [
-    ...arr.slice(0, toIndex),
-    arr[fromIndex],
-    ...arr.slice(toIndex, fromIndex),
-    ...arr.slice(fromIndex + 1),
-  ];
-}
-
 if (process.argv.includes("--run")) {
-  run({ rules, pageSequence: pages });
+  run(rules, pages);
 }

@@ -5,18 +5,18 @@ import { rules, pages } from "./input.js";
 // - For each page,
 // - Check pages after to make sure they can appear.
 
+function createDependencyMap(rules) {
+  return rules.reduce(
+    (map, [before, after]) => ({
+      ...map,
+      [after]: [...(map[after] || []), before],
+    }),
+    {}
+  );
+}
+
 function run({ rules, pageSequence }) {
-  const map = rules.reduce((acc, curr) => {
-    const [page1, page2] = curr;
-
-    if (acc[page2]) {
-      acc[page2].push(page1);
-    } else {
-      acc[page2] = [page1];
-    }
-
-    return acc;
-  }, {});
+  const dependencyMap = createDependencyMap(rules);
 
   const result = pageSequence.reduce((acc, curr) => {
     const inOrder = curr.every((item, idx) => {
@@ -24,13 +24,13 @@ function run({ rules, pageSequence }) {
       // - If not, everything is allowed, return.
       // - If so, iterate the rest of the array (after this index) and make sure none are in the map.
 
-      if (typeof map[item] === "undefined") {
+      if (typeof dependencyMap[item] === "undefined") {
         return true;
       }
 
       return curr
         .slice(idx + 1)
-        .every((restItem) => !map[item].includes(restItem));
+        .every((restItem) => !dependencyMap[item].includes(restItem));
     });
 
     if (inOrder) {
