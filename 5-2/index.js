@@ -1,10 +1,5 @@
 import { rules, pages } from "./input.js";
 
-// 1. For each number, store a sorted list of the numbers that CAN'T appear after.
-// 2. Iterate pages.
-// - For each page,
-// - Check pages after to make sure they can appear.
-
 /**
  * Map of numbers (key) and the numbers they MUST come after.
  */
@@ -25,51 +20,72 @@ function createNotAllowedBeforeMap(rules) {
 }
 
 function checkPageInSequence(sequence, page, notAllowedBeforeMap) {
-  // 1. Does it have a mapping of not allowed after values?
-  // - If not, everything is allowed, return.
-  // - If so, iterate the rest of the array (after this index) and make sure none are in the map.
-
   if (typeof notAllowedBeforeMap[page] === "undefined") {
-    return true;
+    return { valid: true, invalidIndexes: [] };
   }
 
   const pageIdx = sequence.indexOf(page);
 
-  // Get indexes of anything in not allowed map.
-  // If index, rearrange curr to have item after index
   const invalidIndexes = sequence
+    // Only check pages after the current one.
     .slice(pageIdx + 1)
-    // List of indexes for invalid pages.
-    .map((followingPage) =>
-      // console.log({ page, map: notAllowedBeforeMap[page], followingPage }) &&
-      notAllowedBeforeMap[page].findIndex(
+    .map((followingPage, idx) =>
+      notAllowedBeforeMap[page].some(
         (notAllowedPage) => followingPage === notAllowedPage
       )
+        ? // Restore to index of full sequence, not just the currently examined slice.
+          pageIdx + idx + 1
+        : -1
     )
-    .filter((pageIndex) => pageIndex !== -1);
+    .filter((pageIndex) => pageIndex !== -1)
+    .sort();
 
-  // console.log({ invalidIndexes });
+  console.log({ invalidIndexes });
 
-  return { valid: invalidIndexes.length === 0, indexes: invalidIndexes };
+  return { valid: invalidIndexes.length === 0, invalidIndexes };
+}
+
+function checkSequence(sequence, notAllowedBeforeMap) {
+  let reordered = false;
+  let workingSequence = [...sequence];
+
+  for (let i = 0; i < workingSequence.length; i++) {
+    let valid = false;
+
+    do {
+      const result = checkPageInSequence(
+        workingSequence,
+        workingSequence[i],
+        notAllowedBeforeMap
+      );
+
+      if (result.invalidIndexes.length) {
+        const newSequence = moveElement(
+          workingSequence,
+          // Move the last invalid
+          result.invalidIndexes[result.invalidIndexes.length - 1],
+          i
+        );
+
+        workingSequence = newSequence;
+        reordered = true;
+      } else {
+        valid = true;
+      }
+    } while (!valid);
+  }
+
+  return { sequence: workingSequence, reordered };
 }
 
 function run({ rules, pageSequence }) {
   const notAllowedBeforeMap = createNotAllowedBeforeMap(rules);
 
-  console.log(notAllowedBeforeMap);
-
   const result = pageSequence.reduce((acc, curr) => {
-    const inOrder = true;
-    // const inOrder = curr.every(
-    //   (item) => checkPageInSequence(curr, item, notAllowedBeforeMap).valid
-    // );
+    const { sequence, reordered } = checkSequence(curr, notAllowedBeforeMap);
 
-    curr.forEach((item) =>
-      console.log(checkPageInSequence(curr, item, notAllowedBeforeMap))
-    );
-
-    if (inOrder) {
-      const middlePage = curr[Math.floor(curr.length / 2)];
+    if (reordered) {
+      const middlePage = sequence[Math.floor(sequence.length / 2)];
       return acc + middlePage;
     }
 
@@ -77,6 +93,15 @@ function run({ rules, pageSequence }) {
   }, 0);
 
   console.log(result);
+}
+
+export function moveElement(arr, fromIndex, toIndex) {
+  return [
+    ...arr.slice(0, toIndex),
+    arr[fromIndex],
+    ...arr.slice(toIndex, fromIndex),
+    ...arr.slice(fromIndex + 1),
+  ];
 }
 
 if (process.argv.includes("--run")) {
