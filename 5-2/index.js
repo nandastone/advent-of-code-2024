@@ -1,6 +1,7 @@
 import { rules, pages } from "./input.js";
 
-// Used Claude to generate documentation because the solution was (imo) complex.
+/* Used Claude to generate documentation because the solution was (imo) complex.
+Forgive me. */
 
 /**
  * Creates a map of dependencies where each key is a page number,
