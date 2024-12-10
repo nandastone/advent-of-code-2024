@@ -6,7 +6,7 @@ export function renderDisk(disk) {
 
   while (node) {
     // console.log(node);
-    result += typeof node.id === "undefined" ? "." : node.id;
+    result += node.type === "empty" ? "." : node.id;
     node = node.next;
   }
 

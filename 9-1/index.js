@@ -4,11 +4,16 @@ import { renderDisk } from "./utils.js";
 
 const debug = createDebug("aoc");
 
+// TODO: Add type.
+// TODO: Wrap in LL for mgmt.
 class DiskNode {
   constructor(prev, id) {
     this.prev = prev;
     this.next = undefined;
     this.id = id;
+    this.type = typeof id === "undefined" ? "empty" : "file";
+
+    // TODO: How does head/tail on node work? Do you need to iterate back through and set?
 
     // if (!prev) {
     //   this.head = this;
@@ -42,58 +47,38 @@ function convertMapToDisk(map) {
   const tail = prev;
 
   return { head, tail };
-
-  // TODO: How does head/tail work? Do you need to iterate back through and set?
-  // prev.tail = prev
-
-  // const disk = map.reduce((acc, curr, idx) => {
-  //   const gap = idx % 2;
-
-  //   if (gap) {
-  //     acc.push(...Array.from({ length: curr }));
-  //     return acc;
-  //   } else {
-  //     acc.push(...Array.from({ length: curr }).map(() => idx / 2));
-  //   }
-
-  //   return acc;
-  // }, []);
-
-  // return disk;
 }
 
 function compressDisk(disk) {
-  const emptyIndexes = disk.reduce((acc, curr, idx) => {
-    if (typeof curr === "undefined") {
-      acc.push(idx);
+  // 1. Start at tail, go backwards until finding file.
+  // 2. Start at head, go forwards until finding empty.
+  // 3. Swap.
+
+  while (true) {
+    let empty;
+    let file;
+
+    while (empty.type !== "empty") {
+      if (!empty.next) {
+        console.log("Nothing left to search.");
+        break;
+      }
+
+      empty = empty.next;
     }
 
-    return acc;
-  }, []);
+    while (file.type !== "file") {
+      if (!file.prev) {
+        console.log("Nothing left to search.");
+        break;
+      }
 
-  let moved = 0;
-  for (let i = disk.length - 1; i > 0; i--) {
-    console.log(`${i - disk.length}/${disk.length}`);
-
-    if (typeof disk[i] === "undefined") {
-      continue;
+      file = file.prev;
     }
 
-    // Swap rightmost non-empty with leftmost empty.
-    const itemIndex = i;
-    const emptyIndex = emptyIndexes[moved];
+    console.log({ empty, file });
 
-    // TODO: Can I build this into the array iteration instead?
-    if (itemIndex < emptyIndex) {
-      break;
-    }
-
-    disk[emptyIndex] = disk[itemIndex];
-    disk[itemIndex] = undefined;
-
-    moved += 1;
-
-    debug("compressing disk", renderDisk(disk));
+    break;
   }
 
   return disk;
@@ -124,10 +109,10 @@ function run(input) {
   console.timeEnd("map to disk");
 
   debug("starting disk", renderDisk(disk));
-  // console.time("compressing disk");
-  // disk = compressDisk(disk);
-  // console.timeEnd("compressing disk");
-  // debug("compressed disk", renderDisk(disk));
+  console.time("compressing disk");
+  disk = compressDisk(disk);
+  console.timeEnd("compressing disk");
+  debug("compressed disk", renderDisk(disk));
 
   // console.time("disk checksum");
   // const checksum = calculateDiskChecksum(disk);
