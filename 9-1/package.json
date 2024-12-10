@@ -1,0 +1,15 @@
+{
+  "name": "aoc-9-1",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "solve": "node index.js --run"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "debug": "^4.4.0"
+  }
+}
