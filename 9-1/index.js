@@ -4,21 +4,62 @@ import { renderDisk } from "./utils.js";
 
 const debug = createDebug("aoc");
 
+class DiskNode {
+  constructor(prev, id) {
+    this.prev = prev;
+    this.next = undefined;
+    this.id = id;
+
+    // if (!prev) {
+    //   this.head = this;
+    // }
+  }
+}
+
 function convertMapToDisk(map) {
-  const disk = map.reduce((acc, curr, idx) => {
-    const gap = idx % 2;
+  let prev = undefined;
+  let head = undefined;
 
-    if (gap) {
-      acc.push(...Array.from({ length: curr }));
-      return acc;
-    } else {
-      acc.push(...Array.from({ length: curr }).map(() => idx / 2));
+  for (let i = 0; i < map.length; i++) {
+    const gap = !!(i % 2);
+    const count = map[i];
+    const val = gap ? undefined : i / 2;
+    let node = undefined;
+
+    for (let k = 0; k < count; k++) {
+      node = new DiskNode(prev, val);
+      if (prev) {
+        prev.next = node;
+      }
+      prev = node;
+
+      if (i === 0 && k === 0) {
+        head = node;
+      }
     }
+  }
 
-    return acc;
-  }, []);
+  const tail = prev;
 
-  return disk;
+  return { head, tail };
+
+  // TODO: How does head/tail work? Do you need to iterate back through and set?
+  // prev.tail = prev
+
+  // const disk = map.reduce((acc, curr, idx) => {
+  //   const gap = idx % 2;
+
+  //   if (gap) {
+  //     acc.push(...Array.from({ length: curr }));
+  //     return acc;
+  //   } else {
+  //     acc.push(...Array.from({ length: curr }).map(() => idx / 2));
+  //   }
+
+  //   return acc;
+  // }, []);
+
+  // return disk;
 }
 
 function compressDisk(disk) {
@@ -83,20 +124,21 @@ function run(input) {
   console.timeEnd("map to disk");
 
   debug("starting disk", renderDisk(disk));
-  console.time("compressing disk");
-  disk = compressDisk(disk);
-  console.timeEnd("compressing disk");
-  debug("compressed disk", renderDisk(disk));
+  // console.time("compressing disk");
+  // disk = compressDisk(disk);
+  // console.timeEnd("compressing disk");
+  // debug("compressed disk", renderDisk(disk));
 
-  console.time("disk checksum");
-  const checksum = calculateDiskChecksum(disk);
-  console.timeEnd("disk checksum");
+  // console.time("disk checksum");
+  // const checksum = calculateDiskChecksum(disk);
+  // console.timeEnd("disk checksum");
 
-  console.log("Checksum: ", checksum);
+  // console.log("Checksum: ", checksum);
 
   console.timeEnd("total runtime");
 }
 
 if (process.argv.includes("--run")) {
+  console.log("ding!");
   run(input);
 }

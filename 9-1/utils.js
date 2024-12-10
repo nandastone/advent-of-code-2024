@@ -1,6 +1,14 @@
 export function renderDisk(disk) {
-  const result = disk
-    .map((item) => (typeof item === "undefined" ? "." : `${item}`))
-    .join("");
+  let result = "";
+  let node = disk.head;
+
+  // console.log(disk);
+
+  while (node) {
+    // console.log(node);
+    result += typeof node.id === "undefined" ? "." : node.id;
+    node = node.next;
+  }
+
   return result;
 }
