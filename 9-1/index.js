@@ -1,94 +1,65 @@
 import createDebug from "debug";
 import { input } from "./input.js";
 import { renderDisk } from "./utils.js";
+import { LL } from "./LL.js";
 
 const debug = createDebug("aoc");
 
-// TODO: Wrap in LL for mgmt.
-export class DiskNode {
-  constructor(prev, id) {
-    this.prev = prev;
-    this.next = undefined;
-    this.id = id;
-    this.type = typeof id === "undefined" ? "empty" : "file";
-
-    // TODO: How does head/tail on node work? Do you need to iterate back through and set?
-    // if (!prev) {
-    //   this.head = this;
-    // }
-  }
-}
-
 export function convertMapToDisk(rawMap) {
   const map = rawMap.split("").map((item) => parseInt(item, 10));
-  let prev = undefined;
-  let head = undefined;
+  const disk = new LL();
 
   for (let i = 0; i < map.length; i++) {
     const gap = !!(i % 2);
     const count = map[i];
     const val = gap ? undefined : i / 2;
-    let node = undefined;
 
     for (let k = 0; k < count; k++) {
-      node = new DiskNode(prev, val);
-      if (prev) {
-        prev.next = node;
-      }
-      prev = node;
-
-      if (i === 0 && k === 0) {
-        head = node;
-      }
+      disk.appendNode(val);
     }
   }
-
-  const tail = prev;
-
-  return { head, tail };
+  return disk;
 }
 
 function compressDisk(disk) {
   // 1. Start at tail, go backwards until finding file.
   // 2. Start at head, go forwards until finding empty.
   // 3. Swap.
+  // 4. Continue un
 
   while (true) {
-    let empty = disk.head;
-    let file = disk.tail;
+    const empty = findFirstEmpty(disk.head);
+    const file = findLastFile(disk.tail);
 
-    while (empty && empty.type !== "empty") {
-      if (!empty.next) {
-        console.log("Nothing left to search.");
-        empty = undefined;
-        break;
-      }
-
-      empty = empty.next;
-    }
-
-    while (file && file.type !== "file") {
-      if (!file.prev) {
-        console.log("Nothing left to search.");
-        file = undefined;
-        break;
-      }
-
-      file = file.prev;
-    }
-
-    if (file.next === empty) {
-      console.log("done!");
+    if (
+      !empty ||
+      !file ||
+      // We've passed the point where files would be moved forward instead of backwards.
+      file.next === empty
+    ) {
       break;
     }
 
-    empty.id = file.id;
-    file.id = undefined;
-    empty.type = "file";
-    file.type = "empty";
+    file.swapWith(empty);
   }
 
   return disk;
+}
+
+function findFirstEmpty(start) {
+  let node = start;
+  while (node && node.type !== "empty") {
+    node = node.next;
+  }
+  return node;
+}
+
+function findLastFile(start) {
+  let node = start;
+  while (node && node.type !== "file") {
+    node = node.prev;
+  }
+  return node;
 }
 
 export function calculateDiskChecksum(disk) {
@@ -110,10 +81,6 @@ export function calculateDiskChecksum(disk) {
 
 export function run(input) {
   console.time("total runtime");
-
-  // You can't convert a compact disk back into a disk map, as the file IDs are potentially no longer sequential.
-  // 1. Convert disk map to a disk (array).
-  // 2. Insertion "sort" the disk to compact blocks to the left of the disk.
 
   console.time("map to disk");
   let disk = convertMapToDisk(input);
