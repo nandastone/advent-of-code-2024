@@ -6,4 +6,4 @@ const rawInput = readFileSync(
   "utf8"
 );
 
-export const input = rawInput.split("").map((item) => parseInt(item, 10));
+export const input = rawInput;

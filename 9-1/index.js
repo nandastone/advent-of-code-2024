@@ -5,7 +5,7 @@ import { renderDisk } from "./utils.js";
 const debug = createDebug("aoc");
 
 // TODO: Wrap in LL for mgmt.
-class DiskNode {
+export class DiskNode {
   constructor(prev, id) {
     this.prev = prev;
     this.next = undefined;
@@ -19,7 +19,8 @@ class DiskNode {
   }
 }
 
-function convertMapToDisk(map) {
+export function convertMapToDisk(rawMap) {
+  const map = rawMap.split("").map((item) => parseInt(item, 10));
   let prev = undefined;
   let head = undefined;
 
@@ -90,7 +91,7 @@ function compressDisk(disk) {
   return disk;
 }
 
-function calculateDiskChecksum(disk) {
+export function calculateDiskChecksum(disk) {
   let idx = 0;
   let checksum = 0;
   let node = disk.head;
@@ -107,7 +108,7 @@ function calculateDiskChecksum(disk) {
   return checksum;
 }
 
-function run(input) {
+export function run(input) {
   console.time("total runtime");
 
   // You can't convert a compact disk back into a disk map, as the file IDs are potentially no longer sequential.
@@ -119,21 +120,21 @@ function run(input) {
   console.timeEnd("map to disk");
 
   debug("starting disk", renderDisk(disk));
-  // console.time("compressing disk");
-  // disk = compressDisk(disk);
-  // console.timeEnd("compressing disk");
-  // debug("compressed disk", renderDisk(disk));
+  console.time("compressing disk");
+  disk = compressDisk(disk);
+  console.timeEnd("compressing disk");
+  debug("compressed disk", renderDisk(disk));
 
-  // console.time("disk checksum");
-  // const checksum = calculateDiskChecksum(disk);
-  // console.timeEnd("disk checksum");
+  console.time("disk checksum");
+  const checksum = calculateDiskChecksum(disk);
+  console.timeEnd("disk checksum");
 
-  // console.log("Checksum: ", checksum);
-
+  console.log("Checksum: ", checksum);
   console.timeEnd("total runtime");
+
+  return checksum;
 }
 
 if (process.argv.includes("--run")) {
-  console.log("ding!");
   run(input);
 }
