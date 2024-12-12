@@ -25,7 +25,7 @@ function compressDisk(disk) {
   // 1. Start at tail, go backwards until finding file.
   // 2. Start at head, go forwards until finding empty.
   // 3. Swap.
-  // 4. Continue un
+  // 4. Continue until files would be moved to empty spaces behind.
 
   while (true) {
     const empty = findFirstEmpty(disk.head);

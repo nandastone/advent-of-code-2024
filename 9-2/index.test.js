@@ -1,64 +1,26 @@
 import test from "node:test";
 import assert from "node:assert";
-import { run } from "./index.js";
+import { convertFilesToDisk } from "./test-utils.js";
+import { calculateDiskChecksum, run } from "./index.js";
 
 test.describe("run", () => {
-  test("2333133121414131402", () => {
-    assert.equal(run("2333133121414131402"), 2858);
+  test("correctly runs the program", () => {
+    assert.equal(run("2333133121414131402"), 1928);
+  });
+});
+
+test.describe("calculateDiskChecksum", () => {
+  test("correctly calculates the checksum", () => {
+    const disk = convertFilesToDisk("0099811188827773336446555566");
+    const expected = 1928;
+    assert.equal(calculateDiskChecksum(disk), expected);
   });
 
-  test("2333133121414131499", () => {
-    assert.equal(run("2333133121414131499"), 6204);
-  });
-
-  test("714892711", () => {
-    assert.equal(run("714892711"), 813);
-  });
-
-  test("12101", () => {
-    assert.equal(run("12101"), 4);
-  });
-
-  test("1313165", () => {
-    assert.equal(run("1313165"), 169);
-  });
-
-  test("12345", () => {
-    assert.equal(run("12345"), 132);
-  });
-
-  test("12143", () => {
-    assert.equal(run("12143"), 31);
-  });
-
-  test("14113", () => {
-    assert.equal(run("14113"), 16);
-  });
-
-  test("121", () => {
-    assert.equal(run("121"), 1);
-  });
-
-  test("48274728818", () => {
-    assert.equal(run("48274728818"), 1752);
-  });
-
-  test("673253833464635054191677274350925861527651788483", () => {
-    assert.equal(
-      run("673253833464635054191677274350925861527651788483"),
-      149706
+  test("correctly calculates the checksum", () => {
+    const disk = convertFilesToDisk(
+      "0000000999911111111299999999999999993333399999999999999989998999899989997444444999799"
     );
-  });
-
-  test("23222120202525282820202020272722212121", () => {
-    assert.equal(run("23222120202525282820202020272722212121"), 7705);
-  });
-
-  test("22222228282828222222282829212324252627282920", () => {
-    assert.equal(run("22222228282828222222282829212324252627282920"), 9447);
-  });
-
-  test("22222228282828222222282829212324252627282920", () => {
-    assert.equal(run("22222228282828222222282829212324252627282920"), 9447);
+    const expected = 26919;
+    assert.equal(calculateDiskChecksum(disk), expected);
   });
 });

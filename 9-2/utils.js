@@ -1,19 +1,13 @@
 export function renderDisk(disk) {
-  const result = disk
-    .reduce((acc, curr) => {
-      if (!curr.count) {
-        return acc;
-      }
+  let result = "";
+  let node = disk.head;
 
-      acc.push(
-        Array.from({ length: curr.count }).map(() =>
-          typeof curr.id !== "undefined" ? `${curr.id}` : "."
-        )
-      );
+  while (node) {
+    result += Array.from({ length: node.count })
+      .map(() => (node.type === "empty" ? "." : node.id))
+      .join("");
+    node = node.next;
+  }
 
-      return acc;
-    }, [])
-    .flat();
-
-  return result.join("");
+  return result;
 }
