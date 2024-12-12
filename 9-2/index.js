@@ -8,32 +8,36 @@ function compressDisk(disk) {
   const processed = new Set();
 
   while (true) {
-    // Find rightmost unprocessed file frame
-    let currentFrame = disk.tail;
+    let currentFile = disk.tail;
+
+    // Find next unprocessed file frame.
     while (
-      currentFrame &&
-      (currentFrame.type !== "file" || processed.has(currentFrame))
+      currentFile &&
+      (currentFile.type !== "file" || processed.has(currentFile))
     ) {
-      currentFrame = currentFrame.prev;
+      currentFile = currentFile.prev;
     }
 
-    // No more unprocessed files
-    if (!currentFrame) {
+    // No more unprocessed files.
+    if (!currentFile) {
       break;
     }
 
-    // Try to move the file
+    // Find the first empty frame of suitable size.
     const empty = findFirstFitEmptyFrame(
       disk.head,
-      currentFrame,
-      currentFrame.size
+      currentFile,
+      currentFile.size
     );
+
+    // If it exists, move the current file into the empty space.
     if (empty) {
-      disk.updateTail(currentFrame);
-      currentFrame.moveToEmptyFrame(empty);
+      // We may have just moved the tail, check for this.
+      disk.updateTail(currentFile);
+      currentFile.moveBeforeEmptyFrame(empty);
     }
 
-    processed.add(currentFrame);
+    processed.add(currentFile);
   }
 
   return disk;

@@ -34,23 +34,29 @@ export class DiskNode {
     this.checked = false;
   }
 
-  moveToEmptyFrame(empty) {
-    // Increase the size of empty frame before current position
+  moveBeforeEmptyFrame(empty) {
+    // Fill the space that will be left behind by moving the current frame.
     if (this.prev && this.prev.type === "empty") {
       this.prev.size += this.size;
     }
 
-    // Remove from current position
-    if (this.prev) this.prev.next = this.next;
-    if (this.next) this.next.prev = this.prev;
+    // Detach the current frame from its position.
+    if (this.prev) {
+      this.prev.next = this.next;
+    }
+    if (this.next) {
+      this.next.prev = this.prev;
+    }
 
-    // Reduce target empty frame size
+    // Reduce target empty frame size to account for incoming current frame.
     empty.size -= this.size;
 
-    // Insert before empty frame
+    // Insert current frame before the empty frame.
     this.next = empty;
     this.prev = empty.prev;
-    if (empty.prev) empty.prev.next = this;
+    if (empty.prev) {
+      empty.prev.next = this;
+    }
     empty.prev = this;
   }
 }
