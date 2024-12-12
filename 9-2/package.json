@@ -4,8 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "solve": "node index.js --run",
-    "test": "node --test index.test.js"
+    "solve": "node index.js --run"
   },
   "author": "",
   "license": "ISC",
